@@ -1,28 +1,23 @@
-#!/usr/bin/env python3
 from speedtest import Speedtest, ConfigRetrievalError
-from pyrogram.handlers import MessageHandler
-from pyrogram.filters import command
 
-from bot import bot, LOGGER
-from bot.helper.telegram_helper.filters import CustomFilters
-from bot.helper.telegram_helper.bot_commands import BotCommands
-from bot.helper.telegram_helper.message_utils import sendMessage, deleteMessage, editMessage
-from bot.helper.ext_utils.bot_utils import get_readable_file_size, new_task
+from .. import LOGGER
+from ..helper.telegram_helper.message_utils import send_message, edit_message, delete_message
+from ..helper.ext_utils.bot_utils import new_task, sync_to_async
+from ..helper.ext_utils.status_utils import get_readable_file_size
 
 @new_task
 async def speedtest(_, message):
-    speed = await sendMessage(message, "<i>Initiating Speedtest...</i>")
+    speed = await send_message(message, "<i>Initiating Speedtest...</i>")
     try:
-        test = Speedtest()
+        speed_results = await sync_to_async(Speedtest)
+        await sync_to_async(speed_results.get_best_server)
+        await sync_to_async(speed_results.download)
+        await sync_to_async(speed_results.upload)
     except ConfigRetrievalError:
-        await editMessage(speed, "<b>ERROR:</b> <i>Can't connect to Server at the Moment, Try Again Later !</i>")
+        await edit_message(speed, "<b>ERROR:</b> <i>Can't connect to Server at the Moment, Try Again Later !</i>")
         return
-    test.get_best_server()
-    test.download()
-    test.upload()
-    test.results.share()
-    result = test.results.dict()
-    path = result['share']
+    speed_results.results.share()
+    result = speed_results.results.dict()
     string_speed = f'''
 ➲ <b><i>SPEEDTEST INFO</i></b>
 ┠ <b>Upload:</b> <code>{get_readable_file_size(result['upload'] / 8)}/s</code>
@@ -49,11 +44,8 @@ async def speedtest(_, message):
 ┖ <b>ISP Rating:</b> <code>{result['client']['isprating']}</code>
 '''
     try:
-        pho = await sendMessage(message, string_speed, photo=path)
-        await deleteMessage(speed)
+        await send_message(message, string_speed, photo=result['share'])
+        await delete_message(speed)
     except Exception as e:
         LOGGER.error(str(e))
-        await editMessage(speed, string_speed)
-
-bot.add_handler(MessageHandler(speedtest, filters=command(
-    BotCommands.SpeedCommand) & CustomFilters.authorized & ~CustomFilters.blacklisted))
+        await edit_message(speed, string_speed)
