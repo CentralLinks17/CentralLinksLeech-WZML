@@ -3,7 +3,7 @@ BOT_TOKEN = "7973135580:AAF0q2y7Wb377bWVTyfUT_eNn7rdBnXzA4U"
 OWNER_ID = 1015200442
 TELEGRAM_API = 25754796
 TELEGRAM_HASH = "8919c4b0fcfd3fa4e8929a64dab80265"
-DATABASE_URL = "mongodb+srv://centrallinksmirror:Password17@centrallinksleech.q99vd.mongodb.net/?retryWrites=true&w=majority&appName=CentralLinksLeech"
+DATABASE_URL = "mongodb://s:s@shiva_s:27017/?tls=false"
 
 # OPTIONAL CONFIG
 TG_PROXY = {}            # {"scheme": ”socks5”, "hostname": ””, "port": 1234, "username": ”user”, "password": ”pass”}
